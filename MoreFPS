@@ -1,0 +1,57 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local OriginalSettings = {}
+local GFX_Enabled = true
+
+local function CleanPart(v)
+if not v:IsA("BasePart")
+and not v:IsA("Decal")
+and not v:IsA("Texture") then
+return
+end
+
+local Character = LocalPlayer.Character
+
+if Character and v:IsDescendantOf(Character) then
+    return
+end
+
+if v:IsA("BasePart") then
+    if not OriginalSettings[v] then
+        OriginalSettings[v] = {
+            Material = v.Material,
+            Reflectance = v.Reflectance
+        }
+    end
+
+    v.Material = Enum.Material.SmoothPlastic
+    v.Reflectance = 0
+
+elseif v:IsA("Decal") or v:IsA("Texture") then
+    if v.Name ~= "face" then
+        if not OriginalSettings[v] then
+            OriginalSettings[v] = {
+                Transparency = v.Transparency
+            }
+        end
+
+        v.Transparency = 1
+    end
+end
+
+end
+
+pcall(function()
+settings().Rendering.QualityLevel = 1
+end)
+
+for _, v in ipairs(workspace:GetDescendants()) do
+CleanPart(v)
+end
+
+workspace.DescendantAdded:Connect(function(v)
+if GFX_Enabled then
+task.defer(CleanPart, v)
+end
+end)
